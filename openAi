@@ -1,0 +1,43 @@
+import openpyxl
+import time
+from openai import OpenAI
+import httpx
+
+# 提问
+askContent = "女生喜欢什么颜色"
+# 文件路径
+codePath = r"/Users/chenghao/Desktop/HaoYue/Project/Dewch/github/IFeatures/openAi对话记录.xlsx"
+
+client = OpenAI(
+    base_url="https://oneapi.xty.app/v1",
+    api_key="sk-zRXMtzBpjagdPUqu30528eC408B747FaB1666d6949AeD4C5",
+    http_client=httpx.Client(
+        base_url="https://oneapi.xty.app/v1",
+        follow_redirects=True,
+    ),
+)
+
+completion = client.chat.completions.create(
+  model="gpt-3.5-turbo",
+  messages=[
+        {"role": "user", "content": askContent}
+  ]
+)
+# 查看回复结果
+print("问题："+askContent)
+print("回答："+completion.choices[0].message.content)
+# 打开文件
+inwb = openpyxl.load_workbook(codePath)
+# 获取工作表对象(sheet)
+ws = inwb.active
+# 找到对应表格
+sheet = inwb['Sheet1']
+# 读取该表格数据
+sheetData = list(sheet.rows)
+num = 0
+for i in sheetData[0:]:
+    num= num +1
+current_date = time.strftime("%Y年%m月%d日", time.localtime())
+#写出表格
+ws.append([num,askContent, completion.choices[0].message.content, current_date])
+inwb.save(codePath)
